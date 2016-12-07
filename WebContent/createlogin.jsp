@@ -53,8 +53,8 @@ table {
 					value="<%=request.getAttribute("password")%>">
 			<tr>
 				<td class="align-right">Repeat Password:</td>
-				<td><input type="password" name="password2"
-					value="<%=request.getAttribute("password2")%>">
+				<td><input type="password" name="repeatPassword"
+					value="<%=request.getAttribute("repeatPassword")%>">
 			
 			<tr>
 				<td class="align-right" colspan=2></td>

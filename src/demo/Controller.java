@@ -54,6 +54,7 @@ public class Controller extends HttpServlet {
 		// TODO Auto-generated method stub
 		String action = request.getParameter("action");
 		PrintWriter out = response.getWriter();
+
 		if (action == null) {
 			request.getRequestDispatcher("/index.jsp").forward(request, response);
 		} else if (action.equals("dologin")) {
@@ -64,7 +65,7 @@ public class Controller extends HttpServlet {
 		} else if (action.equals("createlogin")) {
 			request.setAttribute("email", "");
 			request.setAttribute("password", "");
-			request.setAttribute("password2", "");
+			request.setAttribute("repeatPassword", "");
 			request.setAttribute("message", "");
 			request.getRequestDispatcher("/createlogin.jsp").forward(request, response);
 		} else {
@@ -81,8 +82,8 @@ public class Controller extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		//doGet(request, response);
-		
+		// doGet(request, response);
+
 		PrintWriter out = response.getWriter();
 
 		/* DB Connection Configuration */
@@ -97,12 +98,12 @@ public class Controller extends HttpServlet {
 
 		String action = request.getParameter("action");
 		Account account = new Account(conn);
-		
+
 		if (action == null) {
 			out.println("unrecognised action");
 			return;
-		}else if (action.equals("dologin")) {
-			
+		} else if (action.equals("dologin")) {
+
 			String email = request.getParameter("email");
 			String password = request.getParameter("password");
 			User user = new User(email, password);
@@ -113,30 +114,66 @@ public class Controller extends HttpServlet {
 				request.setAttribute("email", "");
 				request.setAttribute("password", "");
 				request.getRequestDispatcher("/login.jsp").forward(request, response);
-			} else	try {   if (account.login(email, password)) {
-								request.getRequestDispatcher("/loginOk.jsp").forward(request, response);
-							} 
-							else {
-								request.setAttribute("message", "login detail not retrieved");
-								request.setAttribute("email", "");
-								request.setAttribute("password", "");
-								request.getRequestDispatcher("/login.jsp").forward(request, response);
-							}
-						} catch(Exception e){
-							// TODO Auto-generated catch block
-							out.println("failed to execute SQL query");
-							return;
-						}
-			} else {
-					out.println("unrecognised action");
+			} else
+				try {
+					if (account.login(email, password)) {
+						request.getRequestDispatcher("/loginOk.jsp").forward(request, response);
+					} else {
+						request.setAttribute("message", "login detail not retrieved");
+						request.setAttribute("email", "");
+						request.setAttribute("password", "");
+						request.getRequestDispatcher("/login.jsp").forward(request, response);
+					}
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					out.println("failed to execute SQL query");
 					return;
-			  }
+				}
+		} else if (action.equals("createlogin")) {
 
-		try{
-			conn.close();
+			String email = request.getParameter("email");
+			String password = request.getParameter("password");
+			String repeatPassword = request.getParameter("repeatPassword");
+			String message = "";
+			User user = new User(email, password);
+
+			try {
+				if (account.exist(email)) {
+
+					message = "Email already exists, choose a different one";
+					request.setAttribute("message", message);
+					request.setAttribute("email", "");
+					request.setAttribute("password", password);
+					request.setAttribute("repeatPassword", repeatPassword);
+					request.getRequestDispatcher("/createlogin.jsp").forward(request, response);
+				}
+				if (!password.equals(repeatPassword)) {
+					message = "Error, Passwords must be identical";
+					request.setAttribute("message", message);
+					request.setAttribute("email", email);
+					request.setAttribute("password", "");
+					request.setAttribute("repeatPassword", "");
+					request.getRequestDispatcher("/createlogin.jsp").forward(request, response);
+				} else if (!user.Validate()) {
+					message = user.getMessage();
+					request.setAttribute("message", message);
+					request.setAttribute("email", email);
+					request.setAttribute("password", "");
+					request.setAttribute("repeatPassword", "");
+					request.getRequestDispatcher("/createlogin.jsp").forward(request, response);
+				} else {
+					account.create(email, password);
+					request.getRequestDispatcher("/createloginOK.jsp").forward(request, response);
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-		catch(SQLException e)
-		{
+
+		try {
+			conn.close();
+		} catch (SQLException e) {
 			out.println("Connection failed");
 			return;
 		}
