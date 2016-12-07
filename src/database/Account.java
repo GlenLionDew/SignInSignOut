@@ -14,6 +14,15 @@ public class Account {
 	}
 
 	public void create(String email, String password) throws SQLException {
+		
+		String sql = "insert into webshop.user (email,password) value (?,?)";
+		PreparedStatement stmt = conn.prepareStatement(sql);
+		stmt.setString(1, email);
+		stmt.setString(2, password);
+		
+		stmt.executeUpdate();
+
+		stmt.close();
 
 	}
 
@@ -31,13 +40,14 @@ public class Account {
 
 			count = rs.getInt("count");
 		}
+		rs.close();
 
 		if (count == 0) {
 			return false;
 		} else {
 			return true;
 		}
-
+		
 	}
 
 	public boolean login(String email, String password) throws Exception {
